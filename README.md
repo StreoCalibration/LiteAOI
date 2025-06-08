@@ -30,3 +30,11 @@ pip install -r requirements.txt
 ```bash
 pip install -r requirements.txt
 ```
+
+## 테스트 실행
+
+의존성 설치 후 루트 디렉터리에서 다음 명령어로 테스트를 실행합니다.
+
+```bash
+pytest -q
+```

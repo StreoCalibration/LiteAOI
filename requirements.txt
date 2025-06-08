@@ -6,3 +6,4 @@ ultralytics
 anomalib
 albumentations
 PyYAML
+pytest
