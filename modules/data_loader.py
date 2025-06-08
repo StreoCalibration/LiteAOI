@@ -1,5 +1,3 @@
-"""이미지 로더 모듈."""
-
 import os
 from pathlib import Path
 from typing import List
@@ -7,9 +5,7 @@ from typing import List
 import cv2
 import numpy as np
 
-
 SUPPORTED_EXTS = (".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff")
-
 
 def load_images_from_folder(folder_path: str) -> List[np.ndarray]:
     """폴더 내의 이미지 파일을 모두 읽어 리스트로 반환합니다.
