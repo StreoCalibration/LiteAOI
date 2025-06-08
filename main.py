@@ -92,7 +92,7 @@ class LiteAOIUI:
 
         for idx, img in enumerate(images):
             processed = preprocess_image(img)
-            results = run_inference(processed)
+            results = run_inference(processed, model)
             summary = summarize_detection(results)
             print(f"[Image {idx}] {summary}")
             save_result_image(img, results, f"output_{idx}.jpg")
