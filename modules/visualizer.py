@@ -13,3 +13,10 @@ def save_result_image(img: np.ndarray, detections: List, path: str) -> None:
             x1, y1, x2, y2 = bbox
             cv2.rectangle(output, (x1, y1), (x2, y2), (0, 255, 0), 2)
     cv2.imwrite(path, output)
+
+
+def show_image(img: np.ndarray, window_name: str = "Image") -> None:
+    """OpenCV 창으로 이미지를 한 번 보여줍니다."""
+    cv2.imshow(window_name, img)
+    cv2.waitKey(0)
+    cv2.destroyWindow(window_name)
