@@ -1,2 +1,2 @@
-data_folder: images
-model_path: models/yolov5s.pt
+data_folder: C:/Users/jsm80607/Downloads
+model_path: F:/Source/LiteAOI/models/yolov8.pt
