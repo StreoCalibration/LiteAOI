@@ -5,7 +5,7 @@ from ultralytics import YOLO
 # 데이터셋 설정(YOLO 포맷 YAML)
 DATA_CONFIG = "./datasets/dataset.yaml"
 # 높은 성능을 위해 yolov8x 모델을 사용합니다.
-PRETRAINED_MODEL = "yolov8x.pt"
+PRETRAINED_MODEL = "./models/yolov8x.pt"
 EPOCHS = 50
 
 
