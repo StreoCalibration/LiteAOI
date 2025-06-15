@@ -2,14 +2,14 @@
 
 # 데이터셋 설정
 dataset:
-  path: "./datasets/dataset.yaml"  # YOLO 형식 데이터셋 YAML 경로
-  deeppcb_path: "../DeepPCB"       # DeepPCB 데이터셋 경로 (선택적)
-  cache_cleanup: true               # labels.cache 자동 삭제 여부
+  path: "./datasets/deeppcb/deeppcb.yaml"  # YOLO 형식 데이터셋 YAML 경로
+  deeppcb_path: "../DeepPCB"              # DeepPCB 데이터셋 경로
+  cache_cleanup: true                      # labels.cache 자동 삭제 여부
 
 # 모델 설정
 model:
   pretrained: "./models/yolov8x.pt"  # 사전 학습 모델
-  output: "./models/mymodel_v1.pt"   # 학습된 모델 저장 경로
+  output: "./models/deeppcb_best.pt" # 학습된 모델 저장 경로
   device: "cuda"                     # 학습/추론 장치 (cuda/cpu)
 
 # 학습 설정
@@ -17,7 +17,7 @@ training:
   epochs: 50
   batch_size: 16
   project: "./output"                # 학습 결과 저장 디렉터리
-  name: "yolo_custom"               # 실험 이름
+  name: "deeppcb_yolo"              # 실험 이름
 
 # 추론 설정  
 inference:
@@ -25,6 +25,17 @@ inference:
   output_dir: "./results"           # 추론 결과 저장 디렉터리
   confidence: 0.5                   # 신뢰도 임계값
   visualize: true                   # 결과 시각화 여부
+
+# DeepPCB 클래스 정보
+classes:
+  names:
+    0: "open"       # 단선
+    1: "short"      # 단락
+    2: "mousebite"  # 마우스바이트
+    3: "spur"       # 스퍼
+    4: "copper"     # 구리잔여물
+    5: "pin-hole"   # 핀홀
+  num_classes: 6
 
 # 데이터셋 다운로드 (선택적)
 download:
