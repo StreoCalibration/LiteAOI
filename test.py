@@ -14,6 +14,9 @@ def main() -> None:
     """지정된 폴더의 이미지에 대해 YOLOv8 추론을 실행합니다."""
 
     print(f"YOLOv8 모델 로드: {MODEL_PATH}")
+    if not Path(MODEL_PATH).exists():
+        print(f"모델 파일을 찾을 수 없습니다: {MODEL_PATH}")
+        return
     model = YOLO(MODEL_PATH, device=0)
 
     image_paths = sorted(Path(TEST_IMAGES_DIR).glob("*.*"))
