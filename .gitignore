@@ -4,3 +4,4 @@ datasets/**
 
 # Ignore models directory
 models/**
+!models/README.md
