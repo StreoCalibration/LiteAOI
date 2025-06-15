@@ -2,4 +2,6 @@
 PyYAML
 opencv-python
 albumentations
+# 최신 YOLO 모델을 사용하기 위해 추가
+ultralytics
 # 실제 프로젝트에서는 PyTorch와 Anomalib 버전에 맞춰 수정
