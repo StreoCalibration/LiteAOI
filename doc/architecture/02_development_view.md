@@ -6,7 +6,7 @@
 
 ```
 project_root/
-├── train.py
+├── yolo_train.py
 ├── infer.py
 ├── modules/
 │   ├── trainer.py

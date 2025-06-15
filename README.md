@@ -19,45 +19,16 @@ pip install -r requirements.txt
 
 ### 데이터셋 준비
 
-데이터가 포함되어 있지 않으므로 학습이나 테스트 전에 아래 스크립트를 사용해
-필요한 데이터셋을 내려받을 수 있습니다.
-
-```bash
-python download_dataset.py https://github.com/example/wafer-dataset.git \
-    --output ./datasets/wafer
-```
-
-추가로, [DeepPCB](https://github.com/tangsanli5201/DeepPCB.git) 리포지토리를
-프로젝트와 같은 상위 폴더에 클론해 사용할 수 있습니다.
+데이터셋은 기본적으로 제공되지 않으므로 사용 전에 적절한 데이터 폴더를 준비해야
+합니다. 예시로 [DeepPCB](https://github.com/tangsanli5201/DeepPCB.git)
+리포지터리를 프로젝트와 같은 상위 폴더에 클론해 사용할 수 있습니다.
 
 ```bash
 git clone https://github.com/tangsanli5201/DeepPCB.git ../DeepPCB
 ```
+클론한 리포지토리의 `PCBData` 폴더 안에는 여러 세트가 포함되어 있으며 각 세트마다 이미지와 라벨 구성 파일(`*.txt`)이 있습니다. 학습에 사용할 세트 경로를 `--dataset` 인자로 지정하면 됩니다. `yolo_train.py`에서 `--data` 옵션을 생략하면 이 위치에서 YAML 파일을 자동으로 찾으며 `test.py` 또한 동일한 규칙으로 동작합니다.
 
-클론한 리포지토리의 `PCBData` 폴더 안에는 여러 세트가 존재하며, 각 세트마다
-이미지와 라벨 구성이 정의된 `*.txt` 파일이 함께 제공됩니다. `train.py`를 실행할
-때 별도의 `--dataset` 옵션을 주지 않으면 이 폴더에서 첫 번째 세트를 자동으로
-선택해 학습에 사용합니다. 특정 세트를 사용하려면 경로를 직접 지정하세요.
 
-`test.py` 스크립트는 위 경로가 존재하면 자동으로 DeepPCB의 테스트 이미지를
-사용합니다. 경로가 없을 경우에는 기본 `test_images` 폴더를 참조합니다.
-`train.py`에서도 `--dataset` 옵션을 주지 않으면 해당 위치의 학습 데이터를
-자동으로 사용합니다.
-
-## 사용 방법
-
-### 학습
-
-학습 스크립트는 개발자용으로 제공되며, 프로젝트 폴더에 위치한 사전 학습 모델을
-불러올 수 있습니다. 다음과 같이 실행합니다.
-
-```bash
-python train.py --output ./models/mymodel_v1.pt \
-    --pretrained ./models/pretrained.pt
-```
-`--dataset` 인자를 생략하면 `../DeepPCB/PCBData` 폴더가 존재할 경우
-첫 번째 세트를 자동으로 사용합니다. 특정 세트를 지정하려면 `--dataset`
-옵션에 경로를 넘기면 됩니다. 해당 경로가 없으면 기본 설정값을 따릅니다.
 
 ### YOLOv8 학습
 
@@ -74,6 +45,24 @@ python yolo_train.py --data ./datasets/dataset.yaml \
 `--data` 옵션을 생략하면 프로젝트 상위 폴더의 `DeepPCB` 리포지터리에서
 YOLO 형식의 YAML 파일을 자동으로 탐색합니다. 특정 경로를 사용하려면
 `--dataset` 옵션에 DeepPCB 하위 폴더를 지정할 수 있습니다.
+
+`--data`와 `--dataset`을 함께 지정할 경우 `--data`에 입력한 YAML 경로가
+존재하면 그 파일을 우선 사용합니다. 경로가 잘못되었거나 옵션을 생략하면
+`--dataset`에서 지정한 폴더를 검색해 YAML 파일을 찾습니다. 두 옵션 모두
+없다면 `datasets/dataset.yaml`이 기본값으로 사용됩니다.
+
+예를 들어, 다음 명령은 `coco128.yaml` 파일이 현재 폴더에 있을 경우 해당
+데이터셋으로 학습하며, 파일이 없으면 `../DeepPCB` 폴더에서 YAML을
+찾아 사용합니다.
+
+```bash
+python yolo_train.py \
+    --data coco128.yaml \
+    --dataset ../DeepPCB \
+    --model models/yolov8x.pt \
+    --epochs 5 \
+    --output output
+```
 
 ### 추론
 
@@ -101,7 +90,7 @@ python test.py
 
 ```text
 project_root/
-├── train.py
+├── yolo_train.py
 ├── download_dataset.py
 ├── infer.py
 ├── modules/
