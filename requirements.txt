@@ -1,9 +1,0 @@
-torch
-torchvision
-opencv-python
-numpy
-ultralytics
-anomalib
-albumentations
-PyYAML
-pytest
