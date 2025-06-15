@@ -120,8 +120,8 @@ def main() -> None:
         # 설정 로드
         config = load_config()
         
-        # 기본값 설정
-        DATA_CONFIG_DEFAULT = str(Path(__file__).resolve().parent / "datasets" / "dataset.yaml")
+        # 기본값 설정 - config.yaml에서 먼저 읽기
+        DATA_CONFIG_DEFAULT = config.get("dataset", {}).get("path", "./datasets/deeppcb/deeppcb.yaml")
         PRETRAINED_MODEL_DEFAULT = config.get("model", {}).get("pretrained", "./models/yolov8x.pt")
         EPOCHS_DEFAULT = config.get("training", {}).get("epochs", 50)
         OUTPUT_DIR_DEFAULT = Path(config.get("training", {}).get("project", "./output"))
@@ -138,19 +138,23 @@ def main() -> None:
         # 데이터셋 경로 결정
         data_config = args.data
         if not data_config:
-            data_config = find_deeppcb_data(args.dataset)
-        else:
-            if not Path(data_config).exists() and args.dataset:
-                candidate = find_deeppcb_data(args.dataset)
-                if candidate:
-                    data_config = candidate
-        
-        if not data_config:
-            data_config = DATA_CONFIG_DEFAULT
-            
+            # 1. 준비된 DeepPCB 데이터셋 확인
+            prepared_deeppcb = Path("./datasets/deeppcb/deeppcb.yaml")
+            if prepared_deeppcb.exists():
+                data_config = str(prepared_deeppcb)
+                logger.info("준비된 DeepPCB 데이터셋 사용")
+            else:
+                # 2. 원본 DeepPCB에서 찾기
+                data_config = find_deeppcb_data(args.dataset)
+                if not data_config:
+                    # 3. config.yaml의 기본값 사용
+                    data_config = DATA_CONFIG_DEFAULT
+                    
         # 데이터셋 검증
         if not Path(data_config).exists():
             logger.error(f"데이터셋 파일을 찾을 수 없습니다: {data_config}")
+            logger.info("💡 먼저 DeepPCB 데이터셋을 준비하세요:")
+            logger.info("   python prepare_deeppcb.py")
             sys.exit(1)
             
         logger.info(f"데이터셋: {data_config}")
@@ -175,7 +179,7 @@ def main() -> None:
             data=data_config,
             epochs=args.epochs,
             project=str(output_dir),
-            name=config.get("training", {}).get("name", "yolo_custom"),
+            name=config.get("training", {}).get("name", "deeppcb_yolo"),
             device=config.get("model", {}).get("device", 0),
         )
 
