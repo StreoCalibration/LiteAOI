@@ -9,6 +9,7 @@ def main() -> None:
     parser.add_argument("--dataset", type=str, help="데이터셋 경로")
     parser.add_argument("--output", type=str, help="모델 저장 경로")
     parser.add_argument("--config", default="config.yaml", help="설정 파일 경로")
+    parser.add_argument("--pretrained", default=None, help="사전 학습 모델 경로")
     args = parser.parse_args()
 
     with open(args.config, "r", encoding="utf-8") as f:
@@ -16,6 +17,8 @@ def main() -> None:
 
     config["dataset"] = args.dataset
     config["output_model"] = args.output
+    if args.pretrained:
+        config["pretrained_model"] = args.pretrained
 
     train_model(config)
 

@@ -1,5 +1,7 @@
 """모델 학습을 담당하는 모듈."""
 from typing import Any, Dict
+import os
+from modules.model_loader import load_pretrained
 
 
 def train_model(config: Dict[str, Any]) -> None:
@@ -10,6 +12,12 @@ def train_model(config: Dict[str, Any]) -> None:
     """
     dataset_path = config.get("dataset")
     output_model = config.get("output_model")
+    pretrained_model = config.get("pretrained_model")
+
+    if pretrained_model and os.path.exists(pretrained_model):
+        load_pretrained(pretrained_model)
+    elif pretrained_model:
+        print("사전 학습 모델이 존재하지 않습니다: " + pretrained_model)
 
     # 실제 학습 로직은 생략되어 있습니다.
     print(f"데이터셋 로드: {dataset_path}")
