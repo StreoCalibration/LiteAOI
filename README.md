@@ -17,6 +17,16 @@ LiteAOI는 단순한 자동 시각 검사 예제 프로젝트입니다. 본 리�
 pip install -r requirements.txt
 ```
 
+### 데이터셋 준비
+
+데이터가 포함되어 있지 않으므로 학습이나 테스트 전에 아래 스크립트를 사용해
+필요한 데이터셋을 내려받을 수 있습니다.
+
+```bash
+python download_dataset.py https://github.com/example/wafer-dataset.git \
+    --output ./datasets/wafer
+```
+
 ## 사용 방법
 
 ### 학습
@@ -68,11 +78,13 @@ python test.py
 ```text
 project_root/
 ├── train.py
+├── download_dataset.py
 ├── infer.py
 ├── modules/
 │   ├── trainer.py
 │   ├── model_loader.py
 │   ├── model_downloader.py
+│   ├── dataset_downloader.py
 │   ├── data_loader.py
 │   ├── preprocessor.py
 │   ├── inference.py

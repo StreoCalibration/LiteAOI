@@ -1,5 +1,5 @@
 # Ignore dataset contents except YAML files
-!datasets/**
+datasets/**
 !datasets/*.yaml
 
 # Ignore models directory
