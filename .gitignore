@@ -7,3 +7,4 @@ models/**
 !models/README.md
 
 runs/**
+output/
