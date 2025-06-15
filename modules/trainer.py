@@ -1,6 +1,7 @@
 """모델 학습을 담당하는 모듈."""
 from typing import Any, Dict
 import os
+from pathlib import Path
 from modules.model_loader import load_pretrained
 
 
@@ -14,8 +15,13 @@ def train_model(config: Dict[str, Any]) -> None:
     output_model = config.get("output_model")
     pretrained_model = config.get("pretrained_model")
 
+    cache_path = Path(dataset_path) / "labels.cache"
+    if cache_path.exists():
+        cache_path.unlink()
+        print(f"캐시 파일 삭제: {cache_path}")
+
     if pretrained_model and os.path.exists(pretrained_model):
-        load_pretrained(pretrained_model)
+        load_pretrained(pretrained_model, device="cuda")
     elif pretrained_model:
         print("사전 학습 모델이 존재하지 않습니다: " + pretrained_model)
 

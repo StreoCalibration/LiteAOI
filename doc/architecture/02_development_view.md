@@ -31,3 +31,8 @@ project_root/
 - PyTorch, YOLOv5/YOLOv8, Anomalib
 - OpenCV, Albumentations
 - 설정 파일 기반 실행 (`config.yaml`)
+
+## 구현 세부
+
+- `trainer.py`는 학습 시작 전에 데이터셋 폴더의 `labels.cache` 파일을 자동으로 삭제합니다.
+- 모델 로딩과 추론 스크립트는 기본 장치로 GPU를 사용하도록 구성되어 있습니다.

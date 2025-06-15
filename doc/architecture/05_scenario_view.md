@@ -5,12 +5,15 @@
 ```
 python train.py --dataset ./datasets/wafer --output ./models/mymodel_v1.pt
 ```
+학습 시작 시 데이터셋 폴더의 `labels.cache` 파일이 자동으로 삭제되며,
+모델 학습은 기본적으로 GPU에서 수행됩니다.
 
 ## 유스케이스 2: 추론 실행
 
 ```
 python infer.py --input ./test_images --model ./models/mymodel_v1.pt
 ```
+추론 또한 GPU를 기본 장치로 사용합니다.
 
 ## Codex 연동 가이드
 

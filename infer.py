@@ -20,7 +20,7 @@ def main() -> None:
     with open(args.config, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
-    model = load_model(args.model)
+    model = load_model(args.model, device="cuda")
     images = load_images(args.input)
     processed = preprocess(images)
     results = run_inference(model, processed)

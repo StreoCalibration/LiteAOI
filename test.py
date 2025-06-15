@@ -14,7 +14,7 @@ def main() -> None:
     """지정된 폴더의 이미지에 대해 YOLOv8 추론을 실행합니다."""
 
     print(f"YOLOv8 모델 로드: {MODEL_PATH}")
-    model = YOLO(MODEL_PATH)
+    model = YOLO(MODEL_PATH, device=0)
 
     image_paths = sorted(Path(TEST_IMAGES_DIR).glob("*.*"))
     if not image_paths:
