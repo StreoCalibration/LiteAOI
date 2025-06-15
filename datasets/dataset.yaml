@@ -1,4 +1,4 @@
-train: ./train
-val: ./val
+train: ./train/images
+val: ./val/images
 nc: 1
 names: ['object']
