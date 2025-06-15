@@ -4,7 +4,7 @@
 
 - 로컬 CLI 환경 (Windows/Linux)
 - CUDA GPU를 기본 장치로 사용하며 필요 시 CPU 모드로 실행 가능
-- 학습: `train.py`
+- 학습: `yolo_train.py`
 - 추론: `infer.py`
 
 ## 향후 확장 고려

@@ -3,7 +3,7 @@
 ## 학습 파이프라인
 
 ```
-train.py
+yolo_train.py
  ├── load config
  ├── download or load pretrained model
  ├── remove labels.cache if exists
@@ -23,4 +23,4 @@ infer.py
  └── summarize and visualize results
 ```
 
-- 학습과 추론은 명확히 분리되어 있어 운영 시에는 `train.py`를 포함할 필요가 없습니다.
+- 학습과 추론은 명확히 분리되어 있어 운영 시에는 `yolo_train.py`를 포함할 필요가 없습니다.
