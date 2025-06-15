@@ -4,10 +4,12 @@ from pathlib import Path
 from ultralytics import YOLO
 
 # 데이터셋 설정(YOLO 포맷 YAML)
-DATA_CONFIG = str((Path(__file__).resolve().parent / "datasets" / "dataset.yaml"))
+DATA_CONFIG = str(Path(__file__).resolve().parent / "datasets" / "dataset.yaml")
 # 높은 성능을 위해 yolov8x 모델을 사용합니다.
 PRETRAINED_MODEL = "./models/yolov8x.pt"
 EPOCHS = 50
+# 학습된 모델이 저장될 디렉터리
+OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 
 
 def main() -> None:
@@ -17,9 +19,15 @@ def main() -> None:
     model = YOLO(PRETRAINED_MODEL)
 
     print(f"데이터셋: {DATA_CONFIG}")
-    results = model.train(data=DATA_CONFIG, epochs=EPOCHS, project="runs/train", name="yolo_custom")
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    results = model.train(
+        data=DATA_CONFIG,
+        epochs=EPOCHS,
+        project=str(OUTPUT_DIR),
+        name="yolo_custom",
+    )
 
-    best_path = results.save_dir + "/weights/best.pt"
+    best_path = Path(results.save_dir) / "weights" / "best.pt"
     print(f"학습 완료. 최종 모델: {best_path}")
 
 
