@@ -32,12 +32,13 @@ python train.py --dataset ./datasets/wafer --output ./models/mymodel_v1.pt \
 ### YOLOv8 학습
 
 YOLOv8을 이용해 객체 탐지 모델을 학습하려면 `yolo_train.py`를 실행합니다. 데이터셋
-구성 파일과 학습 파라미터는 스크립트 안의 상수에서 수정할 수 있습니다.
-`labels.cache` 파일이 존재할 경우 스크립트가 자동으로 삭제하며, 기본 장치는 GPU로
-설정되어 있습니다.
+구성 파일, 사전 학습 모델, 에폭 수와 출력 디렉터리를 인자로 전달해 설정할 수 있습니다.
+`labels.cache` 파일이 존재할 경우 스크립트가 자동으로 삭제하며, 기본 장치는 GPU로 설정되어 있습니다.
 
 ```bash
-python yolo_train.py
+python yolo_train.py --data ./datasets/dataset.yaml \
+                    --model ./models/yolov8x.pt \
+                    --epochs 50 --output ./output
 ```
 
 ### 추론
