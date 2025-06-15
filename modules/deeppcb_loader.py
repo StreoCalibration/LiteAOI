@@ -76,36 +76,68 @@ class DeepPCBLoader:
         (output_path / 'labels' / 'train').mkdir(parents=True, exist_ok=True)
         (output_path / 'labels' / 'val').mkdir(parents=True, exist_ok=True)
         
-        # PCBData 디렉터리 탐색
-        pcb_data_path = self.dataset_path / 'PCBData'
-        if pcb_data_path.exists():
-            groups = [d for d in pcb_data_path.iterdir() if d.is_dir()]
+        # DeepPCB 구조 탐색
+        total_images = 0
+        image_files = []
+        
+        # 다양한 가능한 경로 탐색
+        search_patterns = [
+            'PCBData/*/*/*.jpg',  # PCBData/group00000/group00000/*.jpg
+            'PCBData/*/*.jpg',    # PCBData/group00000/*.jpg
+            'PCBData/*.jpg',      # PCBData/*.jpg
+            '*.jpg',              # 루트에 있는 경우
+        ]
+        
+        for pattern in search_patterns:
+            found_files = list(self.dataset_path.glob(pattern))
+            if found_files:
+                image_files.extend(found_files)
+                logger.info(f"Found {len(found_files)} images with pattern: {pattern}")
+        
+        # 대문자 JPG도 확인
+        for pattern in search_patterns:
+            pattern_upper = pattern.replace('.jpg', '.JPG')
+            found_files = list(self.dataset_path.glob(pattern_upper))
+            if found_files:
+                image_files.extend(found_files)
+                logger.info(f"Found {len(found_files)} images with pattern: {pattern_upper}")
+        
+        # 중복 제거
+        image_files = list(set(image_files))
+        
+        if not image_files:
+            logger.error(f"No images found in {self.dataset_path}")
+            logger.info("DeepPCB structure should be: PCBData/groupXXXXX/groupXXXXX/*.jpg")
+            raise ValueError("No images found in dataset")
+        
+        logger.info(f"Total {len(image_files)} unique images found")
+        
+        # 이미지 처리
+        import shutil
+        for i, img_path in enumerate(sorted(image_files)):
+            # 80% train, 20% val 분할
+            split = 'train' if i < len(image_files) * 0.8 else 'val'
             
-            total_images = 0
-            for group in groups:
-                # 각 그룹의 이미지와 라벨 처리
-                image_files = list(group.glob('*.jpg')) + list(group.glob('*.JPG'))
+            # 이미지 복사
+            dst_img = output_path / 'images' / split / img_path.name
+            if not dst_img.exists():
+                shutil.copy2(img_path, dst_img)
+                logger.debug(f"Copied {img_path} to {dst_img}")
+            
+            # 라벨 파일 처리
+            txt_path = img_path.with_suffix('.txt')
+            if txt_path.exists():
+                dst_txt = output_path / 'labels' / split / txt_path.name
+                shutil.copy2(txt_path, dst_txt)
+            else:
+                logger.warning(f"Label file not found: {txt_path}")
                 
-                for i, img_path in enumerate(image_files):
-                    # 80% train, 20% val 분할
-                    split = 'train' if i < len(image_files) * 0.8 else 'val'
-                    
-                    # 이미지 복사
-                    dst_img = output_path / 'images' / split / img_path.name
-                    if not dst_img.exists():
-                        import shutil
-                        shutil.copy2(img_path, dst_img)
-                    
-                    # 라벨 파일 처리
-                    txt_path = img_path.with_suffix('.txt')
-                    if txt_path.exists():
-                        dst_txt = output_path / 'labels' / split / txt_path.name
-                        shutil.copy2(txt_path, dst_txt)
-                        
-                    total_images += 1
-                    
-            logger.info(f"Prepared {total_images} images for training")
+            total_images += 1
             
+        logger.info(f"Prepared {total_images} images for training")
+        logger.info(f"Train: {len(list((output_path / 'images' / 'train').glob('*.jpg')))} images")
+        logger.info(f"Val: {len(list((output_path / 'images' / 'val').glob('*.jpg')))} images")
+        
         # YAML 파일 생성
         self.create_yaml_config(output_path)
         
