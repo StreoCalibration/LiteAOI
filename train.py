@@ -1,7 +1,9 @@
 """학습 진입점."""
 import argparse
 import yaml
+from pathlib import Path
 from modules.trainer import train_model
+from modules.dataset_downloader import download_dataset
 
 
 def main() -> None:
@@ -20,8 +22,15 @@ def main() -> None:
     if args.pretrained:
         config["pretrained_model"] = args.pretrained
 
+    dataset_path = Path(args.dataset)
+    if not dataset_path.exists():
+        url = config.get("dataset_url")
+        if url:
+            download_dataset(url, str(dataset_path))
+
     train_model(config)
 
 
 if __name__ == "__main__":
     main()
+
