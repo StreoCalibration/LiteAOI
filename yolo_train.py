@@ -4,6 +4,57 @@ from pathlib import Path
 import shutil
 import argparse
 from ultralytics import YOLO
+from typing import Optional
+
+
+def find_yaml_file(directory: Path) -> Optional[Path]:
+    """주어진 디렉터리에서 첫 번째 YAML 파일을 반환합니다."""
+    for ext in ("*.yaml", "*.yml"):
+        candidates = list(directory.glob(ext))
+        if candidates:
+            return candidates[0]
+    return None
+
+
+def find_deeppcb_data(dataset_dir: Optional[str]) -> Optional[str]:
+    """DeepPCB 경로에서 학습용 YAML 파일을 탐색합니다."""
+    if dataset_dir:
+        d = Path(dataset_dir)
+        if d.is_file():
+            return str(d)
+        if d.is_dir():
+            yaml_path = find_yaml_file(d)
+            if yaml_path:
+                return str(yaml_path)
+            for sub in sorted(d.iterdir()):
+                if sub.is_dir():
+                    yaml_path = find_yaml_file(sub)
+                    if yaml_path:
+                        return str(yaml_path)
+        return None
+
+    project_root = Path(__file__).resolve().parent
+    deeppcb_root = (project_root / ".." / "DeepPCB").resolve()
+    candidate_roots = [
+        deeppcb_root / "dataset",
+        deeppcb_root / "datasets",
+        deeppcb_root / "PCBData",
+    ]
+    for root in candidate_roots:
+        if not root.exists():
+            continue
+        yaml_path = find_yaml_file(root)
+        if yaml_path:
+            print(f"DeepPCB 데이터셋 사용: {yaml_path}")
+            return str(yaml_path)
+        if root.name == "PCBData":
+            subdirs = sorted([d for d in root.iterdir() if d.is_dir()])
+            for sub in subdirs:
+                yaml_path = find_yaml_file(sub)
+                if yaml_path:
+                    print(f"DeepPCB 데이터셋 사용: {yaml_path}")
+                    return str(yaml_path)
+    return None
 
 
 def remove_labels_cache(data_config: str) -> None:
@@ -28,8 +79,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="YOLOv8 학습 스크립트")
     parser.add_argument(
         "--data",
-        default=DATA_CONFIG_DEFAULT,
+        default=None,
         help="데이터셋 YAML 경로",
+    )
+    parser.add_argument(
+        "--dataset",
+        default=None,
+        help="DeepPCB 데이터셋 경로",
     )
     parser.add_argument(
         "--model",
@@ -49,17 +105,27 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    data_config = args.data
+    if not data_config:
+        data_config = find_deeppcb_data(args.dataset)
+    else:
+        if not Path(data_config).exists() and args.dataset:
+            candidate = find_deeppcb_data(args.dataset)
+            if candidate:
+                data_config = candidate
+    if not data_config:
+        data_config = DATA_CONFIG_DEFAULT
+    print(f"데이터셋: {data_config}")
+    remove_labels_cache(data_config)
+
     print(f"프리트레인 모델 로드: {args.model}")
     if not Path(args.model).exists():
         raise FileNotFoundError(f"프리트레인 모델을 찾을 수 없습니다: {args.model}")
     model = YOLO(args.model)
-
-    print(f"데이터셋: {args.data}")
-    remove_labels_cache(args.data)
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
     results = model.train(
-        data=args.data,
+        data=data_config,
         epochs=args.epochs,
         project=str(output_dir),
         name="yolo_custom",
