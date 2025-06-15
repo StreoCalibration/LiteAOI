@@ -34,6 +34,11 @@ python download_dataset.py https://github.com/example/wafer-dataset.git \
 git clone https://github.com/tangsanli5201/DeepPCB.git ../DeepPCB
 ```
 
+클론한 리포지토리의 `PCBData` 폴더 안에는 여러 세트가 존재하며, 각 세트마다
+이미지와 라벨 구성이 정의된 `*.txt` 파일이 함께 제공됩니다. `train.py`를 실행할
+때 별도의 `--dataset` 옵션을 주지 않으면 이 폴더에서 첫 번째 세트를 자동으로
+선택해 학습에 사용합니다. 특정 세트를 사용하려면 경로를 직접 지정하세요.
+
 `test.py` 스크립트는 위 경로가 존재하면 자동으로 DeepPCB의 테스트 이미지를
 사용합니다. 경로가 없을 경우에는 기본 `test_images` 폴더를 참조합니다.
 `train.py`에서도 `--dataset` 옵션을 주지 않으면 해당 위치의 학습 데이터를
@@ -50,8 +55,9 @@ git clone https://github.com/tangsanli5201/DeepPCB.git ../DeepPCB
 python train.py --output ./models/mymodel_v1.pt \
     --pretrained ./models/pretrained.pt
 ```
-`--dataset` 인자를 생략하면 `../DeepPCB` 폴더가 존재할 경우 그 안의
-데이터셋을 자동으로 사용합니다. 경로가 없으면 기본 설정값을 따릅니다.
+`--dataset` 인자를 생략하면 `../DeepPCB/PCBData` 폴더가 존재할 경우
+첫 번째 세트를 자동으로 사용합니다. 특정 세트를 지정하려면 `--dataset`
+옵션에 경로를 넘기면 됩니다. 해당 경로가 없으면 기본 설정값을 따릅니다.
 
 ### YOLOv8 학습
 
