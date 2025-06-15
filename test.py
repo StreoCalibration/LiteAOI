@@ -5,8 +5,27 @@ from pathlib import Path
 import cv2
 from ultralytics import YOLO
 
-# 테스트용 이미지와 모델 경로를 직접 지정합니다.
-TEST_IMAGES_DIR = "./test_images"
+# 기본 테스트 이미지 폴더.
+# 프로젝트와 같은 상위 경로에 존재하는 DeepPCB 리포지토리를 우선 사용합니다.
+PROJECT_ROOT = Path(__file__).resolve().parent
+DEEPPCB_ROOT = (PROJECT_ROOT / ".." / "DeepPCB").resolve()
+
+_candidate_dirs = [
+    DEEPPCB_ROOT / "dataset" / "test" / "images",
+    DEEPPCB_ROOT / "datasets" / "test" / "images",
+    DEEPPCB_ROOT / "PCBData" / "test" / "images",
+]
+
+TEST_IMAGES_DIR = None
+for _d in _candidate_dirs:
+    if _d.exists():
+        TEST_IMAGES_DIR = str(_d)
+        break
+
+if TEST_IMAGES_DIR is None:
+    # 폴더가 존재하지 않으면 기본 경로를 사용합니다.
+    TEST_IMAGES_DIR = str(PROJECT_ROOT / "test_images")
+
 MODEL_PATH = "./models/best.pt"  # 학습된 모델 경로 또는 프리트레인 모델
 
 
