@@ -20,10 +20,12 @@ pip install -r requirements.txt
 
 ### 학습
 
-학습 데이터를 이용하여 모델을 학습하고 싶다면 다음과 같이 실행합니다.
+학습 스크립트는 개발자용으로 제공되며, 프로젝트 폴더에 위치한 사전 학습 모델을
+불러올 수 있습니다. 다음과 같이 실행합니다.
 
 ```bash
-python train.py --dataset ./datasets/wafer --output ./models/mymodel_v1.pt
+python train.py --dataset ./datasets/wafer --output ./models/mymodel_v1.pt \
+    --pretrained ./models/pretrained.pt
 ```
 
 ### 추론
