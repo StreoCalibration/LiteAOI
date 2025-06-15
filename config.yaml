@@ -1,0 +1,4 @@
+dataset: ./datasets/wafer
+output_model: ./models/mymodel_v1.pt
+batch_size: 4
+epochs: 1
