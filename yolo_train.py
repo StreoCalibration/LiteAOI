@@ -25,6 +25,8 @@ def main() -> None:
     """YOLOv8 훈련을 실행합니다."""
 
     print(f"프리트레인 모델 로드: {PRETRAINED_MODEL}")
+    if not Path(PRETRAINED_MODEL).exists():
+        raise FileNotFoundError(f"프리트레인 모델을 찾을 수 없습니다: {PRETRAINED_MODEL}")
     model = YOLO(PRETRAINED_MODEL)
 
     print(f"데이터셋: {DATA_CONFIG}")
