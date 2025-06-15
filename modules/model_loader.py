@@ -7,3 +7,9 @@ def load_model(model_path: str) -> Any:
     print(f"모델 로드: {model_path}")
     # 실제 로딩 로직은 생략
     return None
+
+
+def load_pretrained(model_path: str) -> Any:
+    """사전 학습 모델을 로드합니다."""
+    print(f"사전 학습 모델 로드: {model_path}")
+    return load_model(model_path)
