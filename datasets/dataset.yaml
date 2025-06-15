@@ -1,4 +1,4 @@
 train: ./train/images
 val: ./val/images
-nc: 1
-names: ['object']
+nc: 6
+names: ["class_1", "class_2", "class_3", "class_4", "class_5", "class_6"]
