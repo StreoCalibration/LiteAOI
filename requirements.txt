@@ -1,0 +1,5 @@
+# 기본 의존성 목록
+PyYAML
+opencv-python
+albumentations
+# 실제 프로젝트에서는 PyTorch와 Anomalib 버전에 맞춰 수정
