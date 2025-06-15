@@ -71,6 +71,10 @@ python yolo_train.py --data ./datasets/dataset.yaml \
                     --epochs 50 --output ./output
 ```
 
+`--data` 옵션을 생략하면 프로젝트 상위 폴더의 `DeepPCB` 리포지터리에서
+YOLO 형식의 YAML 파일을 자동으로 탐색합니다. 특정 경로를 사용하려면
+`--dataset` 옵션에 DeepPCB 하위 폴더를 지정할 수 있습니다.
+
 ### 추론
 
 학습된 모델을 사용하여 이미지를 분석하려면 다음 명령을 사용합니다.
