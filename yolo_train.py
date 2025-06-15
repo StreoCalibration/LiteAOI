@@ -4,6 +4,14 @@ from pathlib import Path
 import shutil
 from ultralytics import YOLO
 
+
+def remove_labels_cache(data_config: str) -> None:
+    """데이터셋 캐시 파일이 존재하면 삭제합니다."""
+    cache_path = Path(data_config).resolve().parent / "labels.cache"
+    if cache_path.exists():
+        cache_path.unlink()
+        print(f"캐시 파일 삭제: {cache_path}")
+
 # 데이터셋 설정(YOLO 포맷 YAML)
 DATA_CONFIG = str(Path(__file__).resolve().parent / "datasets" / "dataset.yaml")
 # 높은 성능을 위해 yolov8x 모델을 사용합니다.
@@ -20,12 +28,14 @@ def main() -> None:
     model = YOLO(PRETRAINED_MODEL)
 
     print(f"데이터셋: {DATA_CONFIG}")
+    remove_labels_cache(DATA_CONFIG)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     results = model.train(
         data=DATA_CONFIG,
         epochs=EPOCHS,
         project=str(OUTPUT_DIR),
         name="yolo_custom",
+        device=0,
     )
 
     best_path = Path(results.save_dir) / "weights" / "best.pt"

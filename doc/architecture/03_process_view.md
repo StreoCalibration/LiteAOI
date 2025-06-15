@@ -6,6 +6,7 @@
 train.py
  ├── load config
  ├── download or load pretrained model
+ ├── remove labels.cache if exists
  ├── load and augment dataset
  ├── train model
  └── save to models/mymodel_v1.pt
@@ -18,7 +19,7 @@ infer.py
  ├── load config
  ├── load trained model
  ├── load and preprocess test images
- ├── run inference
+ ├── run inference (GPU by default)
  └── summarize and visualize results
 ```
 
