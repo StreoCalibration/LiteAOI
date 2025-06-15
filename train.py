@@ -35,6 +35,22 @@ def main() -> None:
             deeppcb_root / "PCBData",
         ]
         for root in candidate_roots:
+            if not root.exists():
+                continue
+            # PCBData 폴더 안에 여러 세트가 있을 경우 첫 번째 세트를 선택합니다.
+            if root.name == "PCBData":
+                subdirs = sorted([d for d in root.iterdir() if d.is_dir()])
+                if subdirs:
+                    dataset_path = subdirs[0]
+                    print(f"DeepPCB 데이터셋 사용: {dataset_path}")
+                    break
+                txt_files = sorted(root.glob("*.txt"))
+                if txt_files:
+                    candidate = root / txt_files[0].stem
+                    if candidate.exists():
+                        dataset_path = candidate
+                        print(f"DeepPCB 데이터셋 사용: {dataset_path}")
+                        break
             if (root / "train").exists() or (root / "train" / "images").exists():
                 dataset_path = root
                 print(f"DeepPCB 데이터셋 사용: {dataset_path}")
