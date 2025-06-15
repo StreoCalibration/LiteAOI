@@ -27,6 +27,18 @@ python download_dataset.py https://github.com/example/wafer-dataset.git \
     --output ./datasets/wafer
 ```
 
+추가로, [DeepPCB](https://github.com/tangsanli5201/DeepPCB.git) 리포지토리를
+프로젝트와 같은 상위 폴더에 클론해 사용할 수 있습니다.
+
+```bash
+git clone https://github.com/tangsanli5201/DeepPCB.git ../DeepPCB
+```
+
+`test.py` 스크립트는 위 경로가 존재하면 자동으로 DeepPCB의 테스트 이미지를
+사용합니다. 경로가 없을 경우에는 기본 `test_images` 폴더를 참조합니다.
+`train.py`에서도 `--dataset` 옵션을 주지 않으면 해당 위치의 학습 데이터를
+자동으로 사용합니다.
+
 ## 사용 방법
 
 ### 학습
@@ -35,9 +47,11 @@ python download_dataset.py https://github.com/example/wafer-dataset.git \
 불러올 수 있습니다. 다음과 같이 실행합니다.
 
 ```bash
-python train.py --dataset ./datasets/wafer --output ./models/mymodel_v1.pt \
+python train.py --output ./models/mymodel_v1.pt \
     --pretrained ./models/pretrained.pt
 ```
+`--dataset` 인자를 생략하면 `../DeepPCB` 폴더가 존재할 경우 그 안의
+데이터셋을 자동으로 사용합니다. 경로가 없으면 기본 설정값을 따릅니다.
 
 ### YOLOv8 학습
 
