@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 import numpy as np
 import cv2
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +21,19 @@ class DeepPCBLoader:
         if not self.dataset_path.exists():
             raise ValueError(f"Dataset path does not exist: {self.dataset_path}")
             
-        # DeepPCB 기본 구조 확인
-        required_dirs = ['images', 'labels']
-        for dir_name in required_dirs:
-            dir_path = self.dataset_path / dir_name
-            if not dir_path.exists():
-                logger.warning(f"Creating missing directory: {dir_path}")
-                dir_path.mkdir(parents=True, exist_ok=True)
+        # DeepPCB의 PCBData 폴더 확인
+        pcb_data_path = self.dataset_path / 'PCBData'
+        if not pcb_data_path.exists():
+            raise ValueError(f"PCBData directory not found in {self.dataset_path}")
     
-    def load_annotations(self, txt_path: str) -> List[Dict]:
-        """DeepPCB 형식의 라벨 파일을 읽음"""
+    def load_deeppcb_annotation(self, txt_path: str) -> List[Dict]:
+        """DeepPCB 형식의 라벨 파일을 읽음
+        
+        DeepPCB 형식: x1 y1 x2 y2 class_id
+        - (x1, y1): 좌상단 좌표
+        - (x2, y2): 우하단 좌표
+        - class_id: 1-6 (1:open, 2:short, 3:mousebite, 4:spur, 5:copper, 6:pin-hole)
+        """
         annotations = []
         
         try:
@@ -38,13 +42,13 @@ class DeepPCBLoader:
                 
             for line in lines:
                 parts = line.strip().split()
-                if len(parts) >= 5:  # class_id, x_center, y_center, width, height
+                if len(parts) >= 5:  # x1, y1, x2, y2, class_id
                     annotation = {
-                        'class_id': int(parts[0]),
-                        'x_center': float(parts[1]),
-                        'y_center': float(parts[2]),
-                        'width': float(parts[3]),
-                        'height': float(parts[4])
+                        'x1': int(parts[0]),
+                        'y1': int(parts[1]),
+                        'x2': int(parts[2]),
+                        'y2': int(parts[3]),
+                        'class_id': int(parts[4]) - 1  # DeepPCB는 1-6, YOLO는 0-5
                     }
                     annotations.append(annotation)
                     
@@ -55,13 +59,21 @@ class DeepPCBLoader:
     
     def convert_to_yolo_format(self, annotations: List[Dict], 
                              image_width: int, image_height: int) -> List[str]:
-        """DeepPCB 라벨을 YOLO 형식으로 변환"""
+        """DeepPCB 라벨을 YOLO 형식으로 변환
+        
+        YOLO 형식: class_id x_center y_center width height (모두 정규화된 값)
+        """
         yolo_labels = []
         
         for ann in annotations:
-            # DeepPCB는 이미 정규화된 좌표를 사용할 가능성이 높음
-            # 필요시 좌표 변환 추가
-            yolo_line = f"{ann['class_id']} {ann['x_center']} {ann['y_center']} {ann['width']} {ann['height']}"
+            # 바운딩 박스 좌표를 중심점과 크기로 변환
+            x_center = (ann['x1'] + ann['x2']) / 2.0 / image_width
+            y_center = (ann['y1'] + ann['y2']) / 2.0 / image_height
+            width = (ann['x2'] - ann['x1']) / image_width
+            height = (ann['y2'] - ann['y1']) / image_height
+            
+            # YOLO 형식으로 포맷
+            yolo_line = f"{ann['class_id']} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}"
             yolo_labels.append(yolo_line)
             
         return yolo_labels
@@ -77,66 +89,87 @@ class DeepPCBLoader:
         (output_path / 'labels' / 'val').mkdir(parents=True, exist_ok=True)
         
         # DeepPCB 구조 탐색
+        pcb_data_path = self.dataset_path / 'PCBData'
         total_images = 0
-        image_files = []
+        processed_images = 0
         
-        # 다양한 가능한 경로 탐색
-        search_patterns = [
-            'PCBData/*/*/*.jpg',  # PCBData/group00000/group00000/*.jpg
-            'PCBData/*/*.jpg',    # PCBData/group00000/*.jpg
-            'PCBData/*.jpg',      # PCBData/*.jpg
-            '*.jpg',              # 루트에 있는 경우
-        ]
+        # 모든 그룹 폴더 탐색
+        group_folders = sorted([d for d in pcb_data_path.iterdir() if d.is_dir() and d.name.startswith('group')])
         
-        for pattern in search_patterns:
-            found_files = list(self.dataset_path.glob(pattern))
-            if found_files:
-                image_files.extend(found_files)
-                logger.info(f"Found {len(found_files)} images with pattern: {pattern}")
+        if not group_folders:
+            raise ValueError(f"No group folders found in {pcb_data_path}")
         
-        # 대문자 JPG도 확인
-        for pattern in search_patterns:
-            pattern_upper = pattern.replace('.jpg', '.JPG')
-            found_files = list(self.dataset_path.glob(pattern_upper))
-            if found_files:
-                image_files.extend(found_files)
-                logger.info(f"Found {len(found_files)} images with pattern: {pattern_upper}")
+        logger.info(f"Found {len(group_folders)} group folders")
         
-        # 중복 제거
-        image_files = list(set(image_files))
-        
-        if not image_files:
-            logger.error(f"No images found in {self.dataset_path}")
-            logger.info("DeepPCB structure should be: PCBData/groupXXXXX/groupXXXXX/*.jpg")
-            raise ValueError("No images found in dataset")
-        
-        logger.info(f"Total {len(image_files)} unique images found")
-        
-        # 이미지 처리
-        import shutil
-        for i, img_path in enumerate(sorted(image_files)):
-            # 80% train, 20% val 분할
-            split = 'train' if i < len(image_files) * 0.8 else 'val'
+        # 각 그룹 폴더 처리
+        for group_idx, group_folder in enumerate(group_folders):
+            # 그룹 내의 하위 폴더 찾기
+            sub_folders = [d for d in group_folder.iterdir() if d.is_dir() and not d.name.endswith('_not')]
             
-            # 이미지 복사
-            dst_img = output_path / 'images' / split / img_path.name
-            if not dst_img.exists():
-                shutil.copy2(img_path, dst_img)
-                logger.debug(f"Copied {img_path} to {dst_img}")
-            
-            # 라벨 파일 처리
-            txt_path = img_path.with_suffix('.txt')
-            if txt_path.exists():
-                dst_txt = output_path / 'labels' / split / txt_path.name
-                shutil.copy2(txt_path, dst_txt)
-            else:
-                logger.warning(f"Label file not found: {txt_path}")
+            for sub_folder in sub_folders:
+                # 이미지 파일들 찾기
+                image_files = list(sub_folder.glob('*.jpg')) + list(sub_folder.glob('*.JPG'))
                 
-            total_images += 1
-            
-        logger.info(f"Prepared {total_images} images for training")
-        logger.info(f"Train: {len(list((output_path / 'images' / 'train').glob('*.jpg')))} images")
-        logger.info(f"Val: {len(list((output_path / 'images' / 'val').glob('*.jpg')))} images")
+                # 대응하는 라벨 폴더
+                label_folder = group_folder / f"{sub_folder.name}_not"
+                
+                if not label_folder.exists():
+                    logger.warning(f"Label folder not found: {label_folder}")
+                    continue
+                
+                for img_path in image_files:
+                    total_images += 1
+                    
+                    # 대응하는 라벨 파일
+                    label_path = label_folder / f"{img_path.stem}.txt"
+                    
+                    if not label_path.exists():
+                        logger.warning(f"Label file not found: {label_path}")
+                        continue
+                    
+                    # 80% train, 20% val 분할 (그룹 단위로)
+                    split = 'train' if group_idx < len(group_folders) * 0.8 else 'val'
+                    
+                    # 이미지 읽어서 크기 확인
+                    img = cv2.imread(str(img_path))
+                    if img is None:
+                        logger.error(f"Failed to read image: {img_path}")
+                        continue
+                    
+                    height, width = img.shape[:2]
+                    
+                    # 라벨 로드 및 변환
+                    annotations = self.load_deeppcb_annotation(str(label_path))
+                    yolo_labels = self.convert_to_yolo_format(annotations, width, height)
+                    
+                    if not yolo_labels:
+                        logger.warning(f"No valid labels for: {img_path}")
+                        continue
+                    
+                    # 파일 복사
+                    dst_img = output_path / 'images' / split / f"{img_path.stem}.jpg"
+                    dst_label = output_path / 'labels' / split / f"{img_path.stem}.txt"
+                    
+                    # 이미지 복사
+                    shutil.copy2(img_path, dst_img)
+                    
+                    # YOLO 형식 라벨 저장
+                    with open(dst_label, 'w') as f:
+                        f.write('\n'.join(yolo_labels))
+                    
+                    processed_images += 1
+                    
+                    if processed_images % 100 == 0:
+                        logger.info(f"Processed {processed_images}/{total_images} images")
+        
+        logger.info(f"Processing complete!")
+        logger.info(f"Total images found: {total_images}")
+        logger.info(f"Successfully processed: {processed_images}")
+        
+        train_count = len(list((output_path / 'images' / 'train').glob('*.jpg')))
+        val_count = len(list((output_path / 'images' / 'val').glob('*.jpg')))
+        logger.info(f"Train: {train_count} images")
+        logger.info(f"Val: {val_count} images")
         
         # YAML 파일 생성
         self.create_yaml_config(output_path)
@@ -148,14 +181,14 @@ path: {output_path.absolute()}
 train: images/train
 val: images/val
 
-# Classes
+# Classes (DeepPCB의 1-6을 0-5로 변환)
 names:
-  0: open
-  1: short
-  2: mousebite
-  3: spur
-  4: copper
-  5: pin-hole
+  0: open        # 단선
+  1: short       # 단락
+  2: mousebite   # 마우스바이트
+  3: spur        # 스퍼
+  4: copper      # 구리잔여물
+  5: pin-hole    # 핀홀
 
 # Number of classes
 nc: 6
